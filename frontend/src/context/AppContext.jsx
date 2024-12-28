@@ -3,7 +3,8 @@ import { createContext } from "react";
 export const AppContext = createContext()
 
 const AppContextProvider = (props) => {
-    const value = {}
+    const currencySymbol = '$'
+    const value = {currencySymbol}
     return(
         <AppContext.Provider value={value}>
             {props.children}
