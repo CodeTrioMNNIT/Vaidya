@@ -60,7 +60,7 @@ const Appointment = () => {
   }, [doctors, docId])
 
   useEffect(() => {
-    getAvailableSlots
+    getAvailableSlots()
   }, [docInfo])
 
   useEffect(() => {
