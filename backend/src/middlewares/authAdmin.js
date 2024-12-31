@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 
 const authAdmin = async(req, res, next) => {
     try{
-        const atoken = req.header("Authorization")?.replace("Bearer ", "")
+        const atoken = req.header("Authorization")
         if(!atoken){
             return res.json({
                 success:false,
