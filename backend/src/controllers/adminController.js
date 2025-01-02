@@ -17,6 +17,14 @@ const addDoctor = asyncHandler(async (req, res) => {
         })
     }
 
+    const existingDoctor = await doctorModel.findOne({ email });
+    if (existingDoctor) {
+        return res.json({
+            success: false,
+            message: "A doctor with this email already exists"
+        });
+    }
+
     if(!validator.isEmail(email)) {
         return res.json({
             success:false,

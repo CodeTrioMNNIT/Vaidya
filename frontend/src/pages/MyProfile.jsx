@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { assets } from "../assets/assets"
 
 const MyProfile = () => {
   const [userData, setUserData] = useState({
     name: "Edward Vincent", 
-    image: assets.profile_pic,
+    // image: assets.profile_pic,
     email: "richardjames@yahoo.in",
     phone: '+91 919 269 6969', 
     address: {
