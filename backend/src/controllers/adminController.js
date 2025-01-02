@@ -93,4 +93,9 @@ const adminLogin = asyncHandler(async (req , res) => {
     }
 })
 
-export { addDoctor, adminLogin }
+const allDoctors = asyncHandler(async (req, res) => {
+    const doctors = await doctorModel.find({}).select('-password')
+    res.status(200).json({ success: true, doctors })
+})
+
+export { addDoctor, adminLogin, allDoctors }
