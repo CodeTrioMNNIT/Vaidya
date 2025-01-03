@@ -32,7 +32,6 @@ const AppContextProvider = (props) => {
         currencySymbol,
         token,
         setToken,
-        backendUrL
     }
 
     useEffect(() => {

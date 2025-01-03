@@ -4,59 +4,69 @@ import bcrypt from 'bcrypt'
 import userModel from "../models/userModel.js"
 import jwt from 'jsonwebtoken' 
 
-const registerUser = asyncHandler(async (req , res) => {
-    const {name , email , password} = req.body
+const registerUser = asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body;
 
-    if(!name || !password || !email) {
-        return res.json({
+    if (!name || !email || !password) {
+        return res.status(400).json({
             success: false,
-            message: "Missing Details"
-        })
-    }
-
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) {
-        return res.json({
-            success: false,
-            message: "A user with this email already exists.",
+            message: "Missing required details: name, email, and password.",
         });
     }
 
-    if(!validator.isEmail(email)){
-        return res.json({
+    if (!validator.isEmail(email)) {
+        return res.status(400).json({
             success: false,
-            message: "Enter a valid email"
-        })
+            message: "Please enter a valid email address.",
+        });
     }
 
-    if(password.length < 8) {
-        return res.json({
+    if (password.length < 8) {
+        return res.status(400).json({
             success: false,
-            message: "Enter a strong password"
-        })
-    }
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password , salt)
-
-    const userData = {
-        name,
-        email, 
-        password : hashedPassword
+            message: "Password must be at least 8 characters long.",
+        });
     }
 
-    const newUser = new userModel(userData)
-    const user = await newUser.save()
+    try {
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "A patient with this email already exists.",
+            });
+        }
 
-    const token = jwt.sign({
-        id:user._id
-    } , process.env.USER_TOKEN_SECRET,
-    { expiresIn:'10d' })
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-    res.json({
-        success:true,
-        token
-    })
-})
+        const userData = {
+            name,
+            email,
+            password: hashedPassword,
+        };
+
+        const newUser = new userModel(userData);
+        const user = await newUser.save();
+
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.USER_TOKEN_SECRET,
+            { expiresIn: "10d" }
+        );
+
+        res.status(201).json({
+            success: true,
+            token,
+        });
+    } catch (error) {
+        console.error("Error while registering user:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error. Please try again later.",
+        });
+    }
+});
 
 const loginUser = asyncHandler(async (req , res) => {
     const {email , password} = req.body

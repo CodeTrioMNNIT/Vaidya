@@ -1,12 +1,12 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
-import Home from './pages/Home'
-import Doctors from './pages/Doctors'
-import Login from './pages/Login'
-import MyProfile from './pages/MyProfile'
-import MyAppointments from './pages/MyAppointments'
-import Appointment from './pages/Appointment'
-import Navbar from './components/Navbar'
+import Home from './pages/Home.jsx'
+import Doctors from './pages/Doctors.jsx'
+import Login from './pages/Login.jsx'
+import MyProfile from './pages/MyProfile.jsx'
+import MyAppointments from './pages/MyAppointments.jsx'
+import Appointment from './pages/Appointment.jsx'
+import Navbar from './components/Navbar.jsx'
 import { ToastContainer, toast } from 'react-toastify';
 
 const App = () => {

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AppContext } from '../context/AppContext'
-import RelatedDoctors from '../components/RelatedDoctors'
+import { AppContext } from '../context/AppContext.jsx'
+import RelatedDoctors from '../components/RelatedDoctors.jsx'
 
 const Appointment = () => {
   const { docId } = useParams()

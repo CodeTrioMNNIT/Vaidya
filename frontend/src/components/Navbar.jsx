@@ -6,7 +6,7 @@ import { RxAvatar } from "react-icons/rx";
 import { CiMenuBurger } from "react-icons/ci";
 import { RxCross1 } from "react-icons/rx";
 import { useContext } from 'react';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../context/AppContext.jsx';
 
 const Navbar = () => {
     const navigate = useNavigate();

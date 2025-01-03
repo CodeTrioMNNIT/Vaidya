@@ -1,23 +1,25 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../context/AppContext.jsx';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
 
-  const {backendUrl, token, setToken} = useContext(AppContext)
+  const {token, setToken} = useContext(AppContext)
   const navigate = useNavigate();
   const [state, setState] = useState('Sign Up')
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
+  const backendUrl = import.meta.env.VITE_BACKEND_URL
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     try{
       if(state === 'Sign Up'){
-        const {data} = await axios.post(backendUrl + '/api/user/register',{name,password,email})
+        console.log(backendUrl + '/api/user/register')
+        const {data} = await axios.post(backendUrl + '/api/user/register',{name,email,password})
         if(data.success) {
           localStorage.setItem('token',data.token)
           setToken(data.token)
