@@ -201,4 +201,30 @@ const listAppointments = asyncHandler(async (req ,res) => {
     })
 })
 
-export { registerUser , loginUser, getProfile, updateProfile, bookAppointment, listAppointments }
+const cancelAppointment = asyncHandler(async(req ,res) => {
+    const {appointmentId} = req.body
+    const appointmentData = await appointmentModel.findById(appointmentId)
+    if(appointmentData.userId !== req.user._id.toString()) {
+        console.log(appointmentData.userId)
+        console.log(req.user._id)
+        return res.json({
+            success: false,
+            message: 'Unauthorized action'
+        })
+    }
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true})
+
+    const {docId, slotDate, slotTime} = appointmentData
+    const doctorData = await doctorModel.findById(docId)
+    let slots_booked = doctorData.slots_booked
+    slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+    await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+
+    res.json({
+        success: true,
+        message: 'Appointment Cancelled'
+    })
+})
+
+export { registerUser , loginUser, getProfile, updateProfile, bookAppointment, listAppointments, cancelAppointment }
