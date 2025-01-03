@@ -193,4 +193,12 @@ const bookAppointment = asyncHandler(async (req ,res) => {
     })
 })
 
-export { registerUser , loginUser, getProfile, updateProfile, bookAppointment }
+const listAppointments = asyncHandler(async (req ,res) => {
+    const appointments = await appointmentModel.find({userId : req.user._id})
+    res.json({
+        success: true,
+        appointments
+    })
+})
+
+export { registerUser , loginUser, getProfile, updateProfile, bookAppointment, listAppointments }
