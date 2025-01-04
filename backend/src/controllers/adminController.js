@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary"
 import fs from "fs"
 import doctorModel from "../models/doctorModel.js"
 import jwt from "jsonwebtoken"
+import appointmentModel from '../models/appointmentModel.js'
 
 const addDoctor = asyncHandler(async (req, res) => {
     const { name, email, password, speciality, degree, experience, about, fees, address } = req.body
@@ -106,4 +107,35 @@ const allDoctors = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, doctors })
 })
 
-export { addDoctor, adminLogin, allDoctors }
+const appointmentsAdmin = async (req, res) => {
+    try {
+        
+        const appointments = await appointmentModel.find({})
+        res.json({success: true, appointments})
+
+    } catch (error) {
+        console.log(error) 
+        res.json({success:false, message: error.message})
+    }
+}
+
+const appointmentCancel = asyncHandler(async(req ,res) => {
+    const {appointmentId} = req.body
+    const appointmentData = await appointmentModel.findById(appointmentId)
+
+    await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true})
+
+    const {docId, slotDate, slotTime} = appointmentData
+    const doctorData = await doctorModel.findById(docId)
+    let slots_booked = doctorData.slots_booked
+    slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+    await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+
+    res.json({
+        success: true,
+        message: 'Appointment Cancelled'
+    })
+})
+
+
+export { addDoctor, adminLogin, allDoctors, appointmentsAdmin, appointmentCancel }
