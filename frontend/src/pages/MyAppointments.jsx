@@ -66,7 +66,9 @@ const MyAppointments = () => {
         
         try {
           
-          const {data} = await axios.post(backendUrl+'/api/user/verifyRazorpay', response, {headers:{token}})
+          const {data} = await axios.post(backendUrl+'/api/user/verifyRazorpay', response, {headers: {
+            Authorization: `${token}`
+          }})
           if(data.success) {
             getUserAppointments()
             navigate('/my-appointments')
@@ -84,7 +86,9 @@ const MyAppointments = () => {
 
   const appointmentRazorpay = async (appointmentId) => {
     try {
-      const {data} = await axios.post(backendUrl + '/api/user/payment-razorpay', {appointmentId}, {headers:{token}})
+      const {data} = await axios.post(backendUrl + '/api/user/payment-razorpay', {appointmentId}, {headers: {
+        Authorization: `${token}`
+      }})
 
       if(data.success) {
         initPay(data.order)
