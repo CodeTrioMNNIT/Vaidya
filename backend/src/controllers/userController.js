@@ -208,8 +208,6 @@ const cancelAppointment = asyncHandler(async(req ,res) => {
     const {appointmentId} = req.body
     const appointmentData = await appointmentModel.findById(appointmentId)
     if(appointmentData.userId !== req.user._id.toString()) {
-        console.log(appointmentData.userId)
-        console.log(req.user._id)
         return res.json({
             success: false,
             message: 'Unauthorized action'

@@ -111,7 +111,7 @@ const allDoctors = asyncHandler(async (req, res) => {
 const appointmentsAdmin = async (req, res) => {
     try {
         
-        const appointments = await appointmentModel.find({})
+        const appointments = await appointmentModel.find({}).sort({ createdAt: -1 });
         res.json({success: true, appointments})
 
     } catch (error) {

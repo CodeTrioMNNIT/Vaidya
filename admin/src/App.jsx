@@ -13,6 +13,7 @@ import { DoctorContext } from "./context/DoctorContext.jsx";
 import DoctorDashboard from './pages/Doctor/DoctorDashboard.jsx'
 import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx'
 import DoctorProfile from './pages/Doctor/DoctorProfile.jsx'
+import { GrSelect } from "react-icons/gr";
 
 function App() {
   const {aToken} = useContext(AdminContext)
@@ -25,7 +26,7 @@ function App() {
       <div className="flex items-start">
         <Sidebar />
         <Routes>
-          <Route path='/' element={<></>} />
+          <Route path='/' element={aToken ? <Dashboard /> : <DoctorDashboard />} />
           <Route path='/admin-dashboard' element={<Dashboard />} />
           <Route path='/all-appointments' element={<AllApointments />} />
           <Route path='/add-doctor' element={<AddDoctor />} />

@@ -61,8 +61,7 @@ const MyAppointments = () => {
       description: 'Appointment Payment', 
       order_id: order.id, 
       receipt: order.receipt, 
-      handler: async (response) => {
-        console.log(response)       
+      handler: async (response) => {       
         
         try {
           
