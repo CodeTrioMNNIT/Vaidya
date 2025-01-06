@@ -5,9 +5,9 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 
 const DoctorProfile = () => {
-
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
     const { dToken, profileData, setProfileData, getProfileData } = useContext(DoctorContext)
-    const { currency, backendUrl } = useContext(AppContext)
+    const { currency} = useContext(AppContext)
     const [isEdit, setIsEdit] = useState(false)
 
     const updateProfile = async () => {

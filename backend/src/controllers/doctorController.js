@@ -109,9 +109,9 @@ const doctorProfile = asyncHandler(async (req, res) => {
 })
 
 const updateDoctorProfile = asyncHandler(async (req, res) => {
-    const { docId, fees, address, available } = req.body
+    const { docId, fees, address, about, available } = req.body
 
-    await doctorModel.findByIdAndUpdate(docId, { fees, address, available })
+    await doctorModel.findByIdAndUpdate(docId, { fees, address, about, available })
 
     res.json({ success: true, message: 'Profile Updated' })
 })
