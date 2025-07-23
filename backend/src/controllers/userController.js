@@ -267,70 +267,100 @@ const cancelAppointment = asyncHandler(async (req, res) => {
   })
   
   const paymentRazorpay = asyncHandler(async (req, res) => {
-    const { appointmentId } = req.body
+    const session = await mongoose.startSession();
+    session.startTransaction();
   
-    const appointmentData = await appointmentModel.findById(appointmentId)
+    try {
+      const { appointmentId } = req.body;
   
-    if (!appointmentData || appointmentData.cancelled) {
-      return res.status(400).json({ success: false, message: "Appointment cancelled or not found" })
+      const appointmentData = await appointmentModel.findById(appointmentId).session(session);
+  
+      if (!appointmentData || appointmentData.cancelled) {
+        throw new Error("Appointment cancelled or not found");
+      }
+  
+      if (appointmentData.payment === true) {
+        throw new Error("Payment already completed");
+      }
+  
+      const options = {
+        amount: appointmentData.amount * 100, // INR to paise
+        currency: process.env.CURRENCY || 'INR',
+        receipt: appointmentId
+      };
+  
+      const order = await razorpayInstance.orders.create(options);
+  
+      await appointmentModel.findByIdAndUpdate(
+        appointmentId,
+        { razorpay_order_id: order.id },
+        { session }
+      );
+  
+      await session.commitTransaction();
+      res.json({ success: true, order });
+    } catch (error) {
+      await session.abortTransaction();
+      res.status(400).json({ success: false, message: error.message });
+    } finally {
+      session.endSession();
     }
+  });
   
-    if (appointmentData.payment === true) {
-      return res.status(400).json({ success: false, message: "Payment already completed" })
-    }
-  
-    const options = {
-      amount: appointmentData.amount * 100, // INR to paise
-      currency: process.env.CURRENCY || 'INR',
-      receipt: appointmentId
-    }
-  
-    const order = await razorpayInstance.orders.create(options)
-  
-    await appointmentModel.findByIdAndUpdate(appointmentId, {
-      razorpay_order_id: order.id
-    })
-  
-    res.json({ success: true, order })
-  })
 
   const verifyRazorpay = asyncHandler(async (req, res) => {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature
-    } = req.body
+    const session = await mongoose.startSession();
+    session.startTransaction();
   
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ success: false, message: 'Missing payment details' })
+    try {
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+      } = req.body;
+  
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        throw new Error("Missing payment details");
+      }
+  
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest('hex');
+  
+      if (expectedSignature !== razorpay_signature) {
+        throw new Error("Invalid payment signature");
+      }
+  
+      const appointmentData = await appointmentModel.findOne({ razorpay_order_id }).session(session);
+  
+      if (!appointmentData || appointmentData.cancelled) {
+        throw new Error("Appointment not found or cancelled");
+      }
+  
+      if (appointmentData.payment === true) {
+        throw new Error("Payment already processed");
+      }
+  
+      await appointmentModel.findByIdAndUpdate(
+        appointmentData._id,
+        {
+          payment: true,
+          razorpay_payment_id,
+          razorpay_signature
+        },
+        { session }
+      );
+  
+      await session.commitTransaction();
+      res.json({ success: true, message: 'Payment verified successfully' });
+    } catch (error) {
+      await session.abortTransaction();
+      res.status(400).json({ success: false, message: error.message });
+    } finally {
+      session.endSession();
     }
+  });
   
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest('hex')
-  
-    if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({ success: false, message: 'Invalid payment signature' })
-    }
-  
-    const appointmentData = await appointmentModel.findOne({ razorpay_order_id })
-  
-    if (!appointmentData || appointmentData.cancelled) {
-      return res.status(404).json({ success: false, message: 'Appointment not found or cancelled' })
-    }
-  
-    if (appointmentData.payment === true) {
-      return res.status(400).json({ success: false, message: 'Payment already processed' })
-    }
-  
-    await appointmentModel.findByIdAndUpdate(appointmentData._id, {
-      payment: true,
-      razorpay_payment_id,
-      razorpay_signature
-    })
-  
-    res.json({ success: true, message: 'Payment verified successfully' })
-  })
 
 export { registerUser , loginUser, getProfile, updateProfile, bookAppointment, listAppointments, cancelAppointment, paymentRazorpay, verifyRazorpay }
