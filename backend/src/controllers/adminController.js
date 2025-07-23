@@ -7,6 +7,7 @@ import doctorModel from "../models/doctorModel.js"
 import userModel from "../models/userModel.js"
 import jwt from "jsonwebtoken"
 import appointmentModel from '../models/appointmentModel.js'
+import mongoose from "mongoose"
 
 const addDoctor = asyncHandler(async (req, res) => {
     const { name, email, password, speciality, degree, experience, about, fees, address } = req.body
@@ -120,23 +121,60 @@ const appointmentsAdmin = async (req, res) => {
     }
 }
 
-const appointmentCancel = asyncHandler(async(req ,res) => {
-    const {appointmentId} = req.body
-    const appointmentData = await appointmentModel.findById(appointmentId)
-
-    await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true})
-
-    const {docId, slotDate, slotTime} = appointmentData
-    const doctorData = await doctorModel.findById(docId)
-    let slots_booked = doctorData.slots_booked
-    slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
-    await doctorModel.findByIdAndUpdate(docId,{slots_booked})
-
-    res.json({
+const appointmentCancel = asyncHandler(async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+  
+    try {
+      const { appointmentId } = req.body;
+      const appointmentData = await appointmentModel.findById(appointmentId).session(session);
+      if (!appointmentData) {
+        throw new Error("Appointment not found");
+      }
+  
+      if (appointmentData.cancelled) {
+        res.json({
+            success: true,
+            message: "Appointment is already cancelled",
+          });
+      }
+  
+      const { docId, slotDate, slotTime } = appointmentData;
+      await appointmentModel.findByIdAndUpdate(
+        appointmentId,
+        { cancelled: true },
+        { session }
+      );
+      const doctorData = await doctorModel.findById(docId).session(session);
+      if (!doctorData) {
+        throw new Error("Doctor not found");
+      }
+  
+      let slots_booked = doctorData.slots_booked || {};
+      slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
+      await doctorModel.findByIdAndUpdate(
+        docId,
+        { slots_booked },
+        { session }
+      );
+      await session.commitTransaction();
+      session.endSession();
+  
+      res.json({
         success: true,
-        message: 'Appointment Cancelled'
-    })
-})
+        message: "Appointment Cancelled",
+      });
+    } catch (err) {
+      await session.abortTransaction();
+      session.endSession();
+  
+      res.status(500).json({
+        success: false,
+        message: err.message || "Failed to cancel appointment",
+      });
+    }
+  });
+  
 
 const adminDashboard = async (req, res) => {
 

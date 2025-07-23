@@ -56,46 +56,62 @@ const MyAppointments = () => {
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: order.amount, 
-      currency: order.currency , 
-      name: 'Appointment Payment', 
-      description: 'Appointment Payment', 
-      order_id: order.id, 
-      receipt: order.receipt, 
-      handler: async (response) => {       
-        
+      currency: order.currency,
+      name: 'Appointment Payment',
+      description: 'Doctor Appointment',
+      order_id: order.id,
+      handler: async (response) => {
         try {
-          
-          const {data} = await axios.post(backendUrl+'/api/user/verifyRazorpay', response, {headers: {
-            Authorization: `${token}`
-          }})
-          if(data.success) {
+          const { data } = await axios.post(
+            backendUrl + '/api/user/verifyRazorpay',
+            response,
+            {
+              headers: {
+                Authorization: `${token}`
+              }
+            }
+          )
+          if (data.success) {
+            toast.success('Payment successful')
             getUserAppointments()
             navigate('/my-appointments')
+          } else {
+            toast.error('Payment failed')
           }
         } catch (error) {
-          console.log(error) 
-          toast.error(error.message)
+          console.error(error)
+          toast.error(error?.response?.data?.message || 'Verification failed')
         }
       }
     }
-
+  
     const rzp = new window.Razorpay(options)
     rzp.open()
   }
-
+  
   const appointmentRazorpay = async (appointmentId) => {
     try {
-      const {data} = await axios.post(backendUrl + '/api/user/payment-razorpay', {appointmentId}, {headers: {
-        Authorization: `${token}`
-      }})
-
-      if(data.success) {
+      const { data } = await axios.post(
+        backendUrl + '/api/user/payment-razorpay',
+        { appointmentId },
+        {
+          headers: {
+            Authorization: `${token}`
+          }
+        }
+      )
+  
+      if (data.success) {
         initPay(data.order)
+      } else {
+        toast.error(data.message || 'Failed to initiate payment')
       }
     } catch (error) {
-      
+      console.error(error)
+      toast.error(error?.response?.data?.message || 'Payment initiation failed')
     }
   }
+  
 
   useEffect(() => {
     if(token) {
