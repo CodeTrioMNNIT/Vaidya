@@ -52,6 +52,11 @@ const appointmentSchema = new mongoose.Schema({
   }
 }, { timestamps: true })
 
+appointmentSchema.index(
+  { docId: 1, slotDate: 1, slotTime: 1 },
+  { unique: true }
+)
+
 const appointmentModel = mongoose.models.appointment || mongoose.model('appointment', appointmentSchema)
 
 export default appointmentModel
